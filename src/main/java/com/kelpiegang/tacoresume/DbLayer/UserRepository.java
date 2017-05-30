@@ -31,8 +31,17 @@ public class UserRepository {
             if (user.getEmail() != null) {
                 Dbuser.setEmail(user.getEmail());
             }
-            if (user.getGender() != null) {
-                Dbuser.setGender(user.getGender());
+            if (user.getAbout() != null) {
+                Dbuser.setAbout(user.getAbout());
+            }
+            if (user.getJobTitle() != null) {
+                Dbuser.setJobTitle(user.getJobTitle());
+            }
+            if (user.getPhoneNumber() != null) {
+                Dbuser.setPhoneNumber(user.getPhoneNumber());
+            }
+            if (user.getWebsite() != null) {
+                Dbuser.setWebsite(user.getWebsite());
             }
             this.datastore.save(Dbuser);
             return Dbuser;
@@ -65,6 +74,15 @@ public class UserRepository {
             if (user == null) {
                 throw new DbError("User not found!");
             }
+            return user;
+        } catch (Exception e) {
+            throw new DbError(e.getMessage());
+        }
+    }
+
+    public User getByFacebookId(String facebookId) throws DbError {
+        try {
+            User user = datastore.createQuery(User.class).field("facebookId").equal(facebookId).get();
             return user;
         } catch (Exception e) {
             throw new DbError(e.getMessage());

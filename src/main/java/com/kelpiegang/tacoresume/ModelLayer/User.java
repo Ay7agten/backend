@@ -1,6 +1,5 @@
 package com.kelpiegang.tacoresume.ModelLayer;
 
-import java.util.Date;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
@@ -10,18 +9,24 @@ public class User {
 
     @Id
     private ObjectId _id;
+    private String facebookId;
     private String name;
     private String email;
-    private Date birthDate;
-    private String gender;
+    private String about;
+    private String jobTitle;
+    private String phoneNumber;
+    private String website;
 
     public User() {
     }
 
-    public User(String name, String email, String gender) {
+    public User(String facebookId) {
+        this.facebookId = facebookId;
+    }
+
+    public User(String name, String email) {
         this.name = name;
         this.email = email;
-        this.gender = gender;
     }
 
     public ObjectId getObjectId() {
@@ -30,6 +35,10 @@ public class User {
 
     public String get_id() {
         return _id.toString();
+    }
+
+    public String getFacebookId() {
+        return facebookId;
     }
 
     public String getName() {
@@ -48,20 +57,35 @@ public class User {
         this.email = email;
     }
 
-    public Date getBirthDate() {
-        return birthDate;
+    public String getAbout() {
+        return about;
     }
 
-    public void setBirthDate(Date birthDate) {
-        this.birthDate = birthDate;
+    public void setAbout(String about) {
+        this.about = about;
     }
 
-    public String getGender() {
-        return gender;
+    public String getJobTitle() {
+        return jobTitle;
     }
 
-    public void setGender(String gender) {
-        this.gender = gender;
+    public void setJobTitle(String jobTitle) {
+        this.jobTitle = jobTitle;
     }
 
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
+    }
 }

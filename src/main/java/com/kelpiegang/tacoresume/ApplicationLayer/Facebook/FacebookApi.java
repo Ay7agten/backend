@@ -30,15 +30,15 @@ public class FacebookApi {
         return "https://www.facebook.com/v2.8/dialog/oauth?client_id=" + this.appId + "&redirect_uri=" + this.domain + "&scope=" + this.scope + "&response_type=" + this.responseType;
     }
 
-    public String getFbToken(String code) throws Exception {
+    public String getFacebookToken(String code) throws Exception {
         String accessTokenRequest = "https://graph.facebook.com/v2.8/oauth/access_token?client_id=" + this.appId + "&redirect_uri=" + this.domain + "&client_secret=" + this.appSecret + "&code=" + code;
         String resBody = httpRequest.sendGet(accessTokenRequest);
         AccessToken accessToken = gson.fromJson(resBody, AccessToken.class);
         return accessToken.getAccessToken();
     }
 
-    public String getFbUserID(String fbToken) {
-        FacebookClient facebookClient = new DefaultFacebookClient(fbToken, Version.LATEST);
+    public String getFacebookUserID(String facebookToken) {
+        FacebookClient facebookClient = new DefaultFacebookClient(facebookToken, Version.LATEST);
         User user = facebookClient.fetchObject("me", User.class);
         return user.getId();
     }
