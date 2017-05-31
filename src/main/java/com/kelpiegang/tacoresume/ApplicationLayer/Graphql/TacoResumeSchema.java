@@ -71,6 +71,14 @@ public class TacoResumeSchema {
                 .name("facebookId")
                 .type(GraphQLString).build();
 
+        GraphQLFieldDefinition googleIdField = newFieldDefinition()
+                .name("googleId")
+                .type(GraphQLString).build();
+
+        GraphQLFieldDefinition linkedinIdField = newFieldDefinition()
+                .name("linkedInId")
+                .type(GraphQLString).build();
+
         GraphQLFieldDefinition nameField = newFieldDefinition()
                 .name("name")
                 .type(GraphQLString).build();
@@ -105,6 +113,8 @@ public class TacoResumeSchema {
                 .name("User")
                 .field(idField)
                 .field(facebookIdField)
+                .field(googleIdField)
+                .field(linkedinIdField)
                 .field(nameField)
                 .field(emailField)
                 .field(aboutField)

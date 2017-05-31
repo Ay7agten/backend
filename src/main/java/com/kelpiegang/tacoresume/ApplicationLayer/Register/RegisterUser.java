@@ -15,10 +15,30 @@ public class RegisterUser {
         this.userFactory = userFactory;
     }
 
-    public User registerNewUser(String facebookId) throws DbError {
+    public User registerNewFacebookUser(String facebookId) throws DbError {
         User user = userRepo.getByFacebookId(facebookId);
         if (user == null) {
-            User newUser = userFactory.create(facebookId);
+            User newUser = userFactory.createFacebookUser(facebookId);
+            return userRepo.add(newUser);
+        } else {
+            return user;
+        }
+    }
+
+    public User registerNewGoogleUser(String googleId) throws DbError {
+        User user = userRepo.getByGoogleId(googleId);
+        if (user == null) {
+            User newUser = userFactory.createGoogleUser(googleId);
+            return userRepo.add(newUser);
+        } else {
+            return user;
+        }
+    }
+
+    public User registerNewLinkedInUser(String linkedInId) throws DbError {
+        User user = userRepo.getByLinkedInId(linkedInId);
+        if (user == null) {
+            User newUser = userFactory.createLinkedInUser(linkedInId);
             return userRepo.add(newUser);
         } else {
             return user;

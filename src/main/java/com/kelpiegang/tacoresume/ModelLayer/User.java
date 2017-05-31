@@ -10,6 +10,8 @@ public class User {
     @Id
     private ObjectId _id;
     private String facebookId;
+    private String googleId;
+    private String linkedInId;
     private String name;
     private String email;
     private String about;
@@ -20,13 +22,14 @@ public class User {
     public User() {
     }
 
-    public User(String facebookId) {
-        this.facebookId = facebookId;
-    }
-
-    public User(String name, String email) {
-        this.name = name;
-        this.email = email;
+    public User(String socialMediaId, String socialMedia) {
+        if (socialMedia.equals("facebook")) {
+            this.facebookId = socialMediaId;
+        } else if (socialMedia.equals("google")) {
+            this.googleId = socialMediaId;
+        } else if (socialMedia.equals("linkedIn")) {
+            this.linkedInId = socialMediaId;
+        }
     }
 
     public ObjectId getObjectId() {
@@ -39,6 +42,14 @@ public class User {
 
     public String getFacebookId() {
         return facebookId;
+    }
+
+    public String getGoogleId() {
+        return googleId;
+    }
+
+    public String getLinkedInId() {
+        return linkedInId;
     }
 
     public String getName() {

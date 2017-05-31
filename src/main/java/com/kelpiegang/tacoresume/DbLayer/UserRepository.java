@@ -89,6 +89,24 @@ public class UserRepository {
         }
     }
 
+    public User getByGoogleId(String googleId) throws DbError {
+        try {
+            User user = datastore.createQuery(User.class).field("googleId").equal(googleId).get();
+            return user;
+        } catch (Exception e) {
+            throw new DbError(e.getMessage());
+        }
+    }
+
+    public User getByLinkedInId(String linkedInId) throws DbError {
+        try {
+            User user = datastore.createQuery(User.class).field("linkedInId").equal(linkedInId).get();
+            return user;
+        } catch (Exception e) {
+            throw new DbError(e.getMessage());
+        }
+    }
+
     public User getByEmail(String email) throws DbError {
         try {
             User user = datastore.createQuery(User.class).field("email").equal(email).get();

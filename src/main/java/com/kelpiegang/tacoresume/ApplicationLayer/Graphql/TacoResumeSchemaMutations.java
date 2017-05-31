@@ -1,8 +1,6 @@
 package com.kelpiegang.tacoresume.ApplicationLayer.Graphql;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.kelpiegang.tacoresume.ApplicationLayer.Error.DbError;
 import com.kelpiegang.tacoresume.ApplicationLayer.GsonInput.WorkExperiencesInput;
 import com.kelpiegang.tacoresume.DbLayer.UserRepository;
@@ -15,7 +13,6 @@ import static graphql.Scalars.GraphQLString;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import static graphql.schema.GraphQLArgument.newArgument;
-import graphql.schema.GraphQLFieldDefinition;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import graphql.schema.GraphQLInputObjectField;
 import static graphql.schema.GraphQLInputObjectField.*;
@@ -23,9 +20,7 @@ import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import static graphql.schema.GraphQLObjectType.newObject;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import org.bson.types.ObjectId;
 
 public class TacoResumeSchemaMutations {

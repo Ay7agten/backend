@@ -10,6 +10,7 @@ import com.kelpiegang.tacoresume.ApplicationLayer.Error.DbError;
 import com.kelpiegang.tacoresume.ApplicationLayer.Error.ValidationError;
 import com.kelpiegang.tacoresume.ApplicationLayer.Facebook.FacebookApi;
 import com.kelpiegang.tacoresume.ApplicationLayer.Factory.UserFactory;
+import com.kelpiegang.tacoresume.ApplicationLayer.Google.GoogleApi;
 import com.kelpiegang.tacoresume.ApplicationLayer.Graphql.TacoResumeSchema;
 import com.kelpiegang.tacoresume.ApplicationLayer.Register.RegisterUser;
 import com.kelpiegang.tacoresume.DbLayer.MongoConfig;
@@ -40,6 +41,7 @@ public class Main {
         JwtAuthentication auth = new JwtAuthentication("secret");
 
         FacebookApi facebookApi = new FacebookApi(httpRequest, gson, backendServerUrl);
+        GoogleApi googleApi = new GoogleApi(httpRequest, gson, backendServerUrl);
 
         MongoConfig mongoConfig = MongoConfig.getInstance();
         UserRepository userRepo = UserRepository.getInstance(mongoConfig.getDatastore());
@@ -84,8 +86,30 @@ public class Main {
             try {
                 String code = request.queryParams("code");
                 String facebookToken = facebookApi.getFacebookToken(code);
-                String facebookId = facebookApi.getFacebookUserID(facebookToken);
-                User user = regUser.registerNewUser(facebookId);
+                String facebookId = facebookApi.getFacebookUserId(facebookToken);
+                User user = regUser.registerNewFacebookUser(facebookId);
+                response.redirect(fronendServerUrl + "?token=" + auth.getJwtToken(user));
+                response.status(204);
+                return "";
+            } catch (AuthenticationError | DbError ex) {
+                response.status(400);
+                response.type("application/json");
+                return gson.toJson(ex);
+            }
+        });
+
+        get("/api/google/login", (request, response) -> {
+            response.redirect(googleApi.authenticate());
+            return null;
+        });
+
+        get("/api/google-redirect", (request, response) -> {
+
+            try {
+                String code = request.queryParams("code");
+                String googleToken = googleApi.getGoogleToken(code);
+                String googleId = googleApi.getGoogleUserId(googleToken);
+                User user = regUser.registerNewGoogleUser(googleId);
                 response.redirect(fronendServerUrl + "?token=" + auth.getJwtToken(user));
                 response.status(204);
                 return "";
