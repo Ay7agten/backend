@@ -1,4 +1,4 @@
-package com.kelpiegang.tacoresume.ApplicationLayer.Google;
+package com.kelpiegang.tacoresume.ApplicationLayer.SocialMedia.Google;
 
 import com.google.gson.Gson;
 import com.kelpiegang.tacoresume.Utility.HttpRequest;

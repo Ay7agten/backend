@@ -42,6 +42,35 @@ public class HttpRequest {
 
     }
 
+    public String sendGetWithAuthHeader(String url, String authHeader) throws Exception {
+
+        URL obj = new URL(url);
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+
+        // optional default is GET
+        con.setRequestMethod("GET");
+
+        //add request header
+        con.setRequestProperty("User-Agent", USER_AGENT);
+        con.setRequestProperty("Authorization", authHeader);
+
+        int responseCode = con.getResponseCode();
+        BufferedReader in = new BufferedReader(
+                new InputStreamReader(con.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+        System.out.println(con.getInstanceFollowRedirects());
+
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+        }
+        in.close();
+
+        //print result
+        return response.toString();
+
+    }
+
     public String sendPost(String url, String requestParameters) throws Exception {
 
         URL obj = new URL(url);

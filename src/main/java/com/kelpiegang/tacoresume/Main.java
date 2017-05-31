@@ -8,11 +8,12 @@ import com.kelpiegang.tacoresume.ApplicationLayer.Error.AuthenticationError;
 import com.kelpiegang.tacoresume.ApplicationLayer.Error.AuthorizationError;
 import com.kelpiegang.tacoresume.ApplicationLayer.Error.DbError;
 import com.kelpiegang.tacoresume.ApplicationLayer.Error.ValidationError;
-import com.kelpiegang.tacoresume.ApplicationLayer.Facebook.FacebookApi;
+import com.kelpiegang.tacoresume.ApplicationLayer.SocialMedia.Facebook.FacebookApi;
 import com.kelpiegang.tacoresume.ApplicationLayer.Factory.UserFactory;
-import com.kelpiegang.tacoresume.ApplicationLayer.Google.GoogleApi;
+import com.kelpiegang.tacoresume.ApplicationLayer.SocialMedia.Google.GoogleApi;
 import com.kelpiegang.tacoresume.ApplicationLayer.Graphql.TacoResumeSchema;
 import com.kelpiegang.tacoresume.ApplicationLayer.Register.RegisterUser;
+import com.kelpiegang.tacoresume.ApplicationLayer.SocialMedia.LinkedIn.LinkedInApi;
 import com.kelpiegang.tacoresume.DbLayer.MongoConfig;
 import com.kelpiegang.tacoresume.DbLayer.UserRepository;
 import com.kelpiegang.tacoresume.DbLayer.WorkExperienceRepository;
@@ -42,6 +43,7 @@ public class Main {
 
         FacebookApi facebookApi = new FacebookApi(httpRequest, gson, backendServerUrl);
         GoogleApi googleApi = new GoogleApi(httpRequest, gson, backendServerUrl);
+        LinkedInApi linkedInApi = new LinkedInApi(httpRequest, gson, backendServerUrl);
 
         MongoConfig mongoConfig = MongoConfig.getInstance();
         UserRepository userRepo = UserRepository.getInstance(mongoConfig.getDatastore());
@@ -110,6 +112,28 @@ public class Main {
                 String googleToken = googleApi.getGoogleToken(code);
                 String googleId = googleApi.getGoogleUserId(googleToken);
                 User user = regUser.registerNewGoogleUser(googleId);
+                response.redirect(fronendServerUrl + "?token=" + auth.getJwtToken(user));
+                response.status(204);
+                return "";
+            } catch (AuthenticationError | DbError ex) {
+                response.status(400);
+                response.type("application/json");
+                return gson.toJson(ex);
+            }
+        });
+
+        get("/api/linkedin/login", (request, response) -> {
+            response.redirect(linkedInApi.authenticate());
+            return null;
+        });
+
+        get("/api/linkedin-redirect", (request, response) -> {
+
+            try {
+                String code = request.queryParams("code");
+                String linkedInToken = linkedInApi.getLinkedInToken(code);
+                String linkedInId = linkedInApi.getLinkedInUserId(linkedInToken);
+                User user = regUser.registerNewLinkedInUser(linkedInId);
                 response.redirect(fronendServerUrl + "?token=" + auth.getJwtToken(user));
                 response.status(204);
                 return "";

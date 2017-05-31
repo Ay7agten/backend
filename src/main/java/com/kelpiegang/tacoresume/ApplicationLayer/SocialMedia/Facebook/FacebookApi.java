@@ -1,4 +1,4 @@
-package com.kelpiegang.tacoresume.ApplicationLayer.Facebook;
+package com.kelpiegang.tacoresume.ApplicationLayer.SocialMedia.Facebook;
 
 import com.google.gson.Gson;
 import com.restfb.types.User;

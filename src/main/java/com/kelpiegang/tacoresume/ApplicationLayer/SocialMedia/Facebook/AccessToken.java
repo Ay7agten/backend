@@ -1,4 +1,4 @@
-package com.kelpiegang.tacoresume.ApplicationLayer.Facebook;
+package com.kelpiegang.tacoresume.ApplicationLayer.SocialMedia.Facebook;
 
 public class AccessToken {
 

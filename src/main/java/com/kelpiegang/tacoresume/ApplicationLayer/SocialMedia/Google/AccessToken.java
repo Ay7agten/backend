@@ -1,4 +1,4 @@
-package com.kelpiegang.tacoresume.ApplicationLayer.Google;
+package com.kelpiegang.tacoresume.ApplicationLayer.SocialMedia.Google;
 
 public class AccessToken {
 
