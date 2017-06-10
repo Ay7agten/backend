@@ -1,27 +1,31 @@
 package com.kelpiegang.tacoresume.ModelLayer;
 
+import java.util.ArrayList;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.NotSaved;
 import org.mongodb.morphia.annotations.Reference;
 
-@Entity("awards")
-public class Award {
+@Entity("developmentToolsSections")
+public class DevelopmentToolsSection {
 
     @Id
     private ObjectId _id;
     @Reference
     private User user;
-    private String title;
-    private String about;
+    @NotSaved
+    private ArrayList<SkillCategory> skillCategories;
 
-    public Award() {
+    public DevelopmentToolsSection() {
     }
 
-    public Award(User user,String title, String about) {
-        this.title = title;
-        this.about = about;
+    public DevelopmentToolsSection(User user) {
         this.user = user;
+    }
+
+    public void setId(ObjectId _id) {
+        this._id = _id;
     }
 
     public ObjectId getObjectId() {
@@ -36,24 +40,16 @@ public class Award {
         return user;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public String getAbout() {
-        return about;
-    }
-
     public void setUser(User user) {
         this.user = user;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public ArrayList<SkillCategory> getSkillCategories() {
+        return skillCategories;
     }
 
-    public void setAbout(String about) {
-        this.about = about;
+    public void setSkillCategories(ArrayList<SkillCategory> skillCategories) {
+        this.skillCategories = skillCategories;
     }
 
 }

@@ -33,10 +33,18 @@ public class WorkExperienceRepository {
         }
     }
 
-    public ArrayList<WorkExperience> update(ArrayList<WorkExperience> workExperiences) throws DbError {
+    public ArrayList<WorkExperience> updateWorkExperiencesByUser(ArrayList<WorkExperience> workExperiences, User user) throws DbError {
+        for (WorkExperience workExperience : workExperiences) {
+            workExperience.setUser(user);
+        }
         try {
-            this.removeAllByUser(workExperiences.get(0).getUser());
-            this.datastore.save(workExperiences);
+            if (workExperiences.isEmpty()) {
+                this.removeAllByUser(user);
+
+            } else {
+                this.removeAllByUser(user);
+                this.datastore.save(workExperiences);
+            }
             return workExperiences;
         } catch (Exception e) {
             throw new DbError(e.getMessage());

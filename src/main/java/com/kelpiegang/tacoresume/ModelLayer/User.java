@@ -16,8 +16,6 @@ public class User {
     private String email;
     private String about;
     private String jobTitle;
-    private String phoneNumber;
-    private String website;
 
     public User() {
     }
@@ -82,21 +80,5 @@ public class User {
 
     public void setJobTitle(String jobTitle) {
         this.jobTitle = jobTitle;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public String getWebsite() {
-        return website;
-    }
-
-    public void setWebsite(String website) {
-        this.website = website;
     }
 }

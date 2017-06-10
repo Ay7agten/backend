@@ -12,11 +12,11 @@ import com.kelpiegang.tacoresume.ApplicationLayer.SocialMedia.Facebook.FacebookA
 import com.kelpiegang.tacoresume.ApplicationLayer.Factory.UserFactory;
 import com.kelpiegang.tacoresume.ApplicationLayer.SocialMedia.Google.GoogleApi;
 import com.kelpiegang.tacoresume.ApplicationLayer.Graphql.TacoResumeSchema;
+import com.kelpiegang.tacoresume.ApplicationLayer.GsonAdaptorFactory.LinkedHashMapAdapterFactory;
 import com.kelpiegang.tacoresume.ApplicationLayer.Register.RegisterUser;
 import com.kelpiegang.tacoresume.ApplicationLayer.SocialMedia.LinkedIn.LinkedInApi;
 import com.kelpiegang.tacoresume.DbLayer.MongoConfig;
-import com.kelpiegang.tacoresume.DbLayer.UserRepository;
-import com.kelpiegang.tacoresume.DbLayer.WorkExperienceRepository;
+import com.kelpiegang.tacoresume.DbLayer.*;
 import com.kelpiegang.tacoresume.ModelLayer.User;
 import com.kelpiegang.tacoresume.Utility.HttpRequest;
 import graphql.ExecutionResult;
@@ -28,32 +28,49 @@ import java.util.Map;
 import static spark.Spark.before;
 import static spark.Spark.get;
 import static spark.Spark.halt;
+import static spark.Spark.options;
 import static spark.Spark.post;
 
 public class Main {
 
     public static void main(String[] args) {
 
+        enableCORS("*", "*", "*");
+
         String backendServerUrl = "http://localhost:4567";
         String fronendServerUrl = "http://127.0.0.1:1111";
 
         HttpRequest httpRequest = new HttpRequest();
+        Gson gsonWithAdaptor = new GsonBuilder().setPrettyPrinting().registerTypeAdapterFactory(new LinkedHashMapAdapterFactory()).create();
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         JwtAuthentication auth = new JwtAuthentication("secret");
 
-        FacebookApi facebookApi = new FacebookApi(httpRequest, gson, backendServerUrl);
-        GoogleApi googleApi = new GoogleApi(httpRequest, gson, backendServerUrl);
-        LinkedInApi linkedInApi = new LinkedInApi(httpRequest, gson, backendServerUrl);
+        FacebookApi facebookApi = new FacebookApi(httpRequest, gsonWithAdaptor, backendServerUrl);
+        GoogleApi googleApi = new GoogleApi(httpRequest, gsonWithAdaptor, backendServerUrl);
+        LinkedInApi linkedInApi = new LinkedInApi(httpRequest, gsonWithAdaptor, backendServerUrl);
 
         MongoConfig mongoConfig = MongoConfig.getInstance();
         UserRepository userRepo = UserRepository.getInstance(mongoConfig.getDatastore());
         WorkExperienceRepository workExpRepo = WorkExperienceRepository.getInstance(mongoConfig.getDatastore());
+        AwardRepository awardRepo = AwardRepository.getInstance(mongoConfig.getDatastore());
+        ContactRepository contactRepo = ContactRepository.getInstance(mongoConfig.getDatastore());
+        DevelopmentToolsSectionRepository developmentToolsSectionRepo = DevelopmentToolsSectionRepository.getInstance(mongoConfig.getDatastore());
+        EducationRepository educationRepo = EducationRepository.getInstance(mongoConfig.getDatastore());
+        ProfessionalSkillsSectionRepository professionalSkillsSectionRepo = ProfessionalSkillsSectionRepository.getInstance(mongoConfig.getDatastore());
+        ReferenceRepository referenceRepo = ReferenceRepository.getInstance(mongoConfig.getDatastore());
+        SkillCategoryRepository skillCategoryRepo = SkillCategoryRepository.getInstance(mongoConfig.getDatastore());
+        SkillRepository skillRepo = SkillRepository.getInstance(mongoConfig.getDatastore());
 
         UserFactory userFactory = new UserFactory();
         RegisterUser regUser = new RegisterUser(userRepo, userFactory);
 
-        TacoResumeSchema tacoResumeSchema = new TacoResumeSchema(userRepo, workExpRepo, gson);
+        TacoResumeSchema tacoResumeSchema = new TacoResumeSchema(userRepo, workExpRepo, awardRepo, contactRepo, developmentToolsSectionRepo,
+                educationRepo, professionalSkillsSectionRepo, referenceRepo, skillCategoryRepo, skillRepo, gsonWithAdaptor);
         GraphQL graphql = new GraphQL(tacoResumeSchema.getSchema());
+
+        get("/api/hello-world", (request, response) -> {
+            return "Hello world!";
+        });
 
         post("/graphql", (request, response) -> {
 
@@ -61,6 +78,9 @@ public class Main {
                 HashMap<String, Object> body = new ObjectMapper().readValue(request.body(), HashMap.class);
                 String query = (String) body.get("query");
                 Map<String, Object> variables = (Map<String, Object>) body.get("variables");
+                if (variables == null) {
+                    variables = new HashMap<String, Object>();
+                }
                 ExecutionResult executionResult = graphql.execute(query, (Object) null, variables);
                 Map<String, Object> result = new LinkedHashMap<>();
                 if (executionResult.getErrors().size() > 0) {
@@ -144,34 +164,63 @@ public class Main {
             }
         });
 
-        before("/graphql", (request, response) -> {
-            try {
-                String jwtToken = request.headers("Authorization");
-                String userId = auth.verifyJwtToken(jwtToken);
+//        before("/graphql", (request, response) -> {
+//            try {
+//                String jwtToken = request.headers("Authorization");
+//                String userId = auth.verifyJwtToken(jwtToken);
+//
+//                HashMap<String, Object> body = new ObjectMapper().readValue(request.body(), HashMap.class);
+//                String query = (String) body.get("query");
+//                Map<String, Object> variables = (Map<String, Object>) body.get("variables");
+//
+//                if (!variables.isEmpty()) {
+//                    Map<String, Object> user = (Map<String, Object>) variables.get("user");
+//                    String _id = (String) user.get("_id");
+//                    if (!userId.equals(_id)) {
+//                        AuthorizationError e = new AuthorizationError("This user unauthorized to this action");
+//                        halt(401, gson.toJson(e));
+//                    }
+//                } else {
+//                    int index1 = query.indexOf("\"", 1) + 1;
+//                    String _id = query.substring(index1, index1 + 24);
+//                    if (!userId.equals(_id)) {
+//                        AuthorizationError e = new AuthorizationError("This user unauthorized to this action");
+//                        halt(401, gson.toJson(e));
+//                    }
+//                }
+//
+//            } catch (AuthenticationError e) {
+//                halt(403, gson.toJson(e));
+//            }
+//        });
+    }
 
-                HashMap<String, Object> body = new ObjectMapper().readValue(request.body(), HashMap.class);
-                String query = (String) body.get("query");
-                Map<String, Object> variables = (Map<String, Object>) body.get("variables");
+    private static void enableCORS(final String origin, final String methods, final String headers) {
 
-                if (!variables.isEmpty()) {
-                    Map<String, Object> user = (Map<String, Object>) variables.get("user");
-                    String _id = (String) user.get("_id");
-                    if (!userId.equals(_id)) {
-                        AuthorizationError e = new AuthorizationError("This user unauthorized to this action");
-                        halt(401, gson.toJson(e));
-                    }
-                } else {
-                    int index1 = query.indexOf("\"", 1) + 1;
-                    String _id = query.substring(index1, index1 + 24);
-                    if (!userId.equals(_id)) {
-                        AuthorizationError e = new AuthorizationError("This user unauthorized to this action");
-                        halt(401, gson.toJson(e));
-                    }
-                }
+        options("/*", (request, response) -> {
 
-            } catch (AuthenticationError e) {
-                halt(403, gson.toJson(e));
+            String accessControlRequestHeaders = request.headers("Access-Control-Request-Headers");
+            if (accessControlRequestHeaders != null) {
+                response.header("Access-Control-Allow-Headers", accessControlRequestHeaders);
+
             }
+
+            String accessControlRequestMethod = request.headers("Access-Control-Request-Method");
+            if (accessControlRequestMethod != null) {
+                response.header("Access-Control-Allow-Methods", accessControlRequestMethod);
+
+            }
+
+            return "OK";
+        });
+
+        before((request, response) -> {
+
+            response.header("Access-Control-Allow-Origin", origin);
+            response.header("Access-Control-Request-Method", methods);
+            response.header("Access-Control-Allow-Headers", headers);
+            // Note: this may or may not be necessary in your particular application
+            response.type("application/json");
         });
     }
 }

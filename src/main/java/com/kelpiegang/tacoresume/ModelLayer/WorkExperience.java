@@ -16,22 +16,22 @@ public class WorkExperience {
     private User user;
     private String title;
     private String company;
-    private Date startedAt;
-    private Date endedAt;
+    private Date startDate;
+    private Date endDate;
     private ArrayList<String> duties;
     private ArrayList<String> tools;
 
     public WorkExperience() {
     }
 
-    public WorkExperience(User user, String title, String company, Date startedAt, Date endedAt) {
+    public WorkExperience(User user, String title, String company, Date startDate, Date endDate, ArrayList<String> duties, ArrayList<String> tools) {
         this.user = user;
         this.title = title;
         this.company = company;
-        this.startedAt = startedAt;
-        this.endedAt = endedAt;
-        this.duties = new ArrayList<>();
-        this.tools = new ArrayList<>();
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.duties = duties;
+        this.tools = tools;
     }
 
     public ObjectId getObjectId() {
@@ -54,17 +54,17 @@ public class WorkExperience {
         return company;
     }
 
-    public Long getStartedAt() {
-        if (startedAt != null) {
-            return startedAt.getTime();
+    public Long getStartDate() {
+        if (startDate != null) {
+            return startDate.getTime();
         } else {
             return null;
         }
     }
 
-    public Long getEndedAt() {
-        if (endedAt != null) {
-            return endedAt.getTime();
+    public Long getEndDate() {
+        if (endDate != null) {
+            return endDate.getTime();
         } else {
             return null;
         }
@@ -90,12 +90,12 @@ public class WorkExperience {
         this.company = company;
     }
 
-    public void setStartedAt(Date startedAt) {
-        this.startedAt = startedAt;
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
     }
 
-    public void setEndedAt(Date endedAt) {
-        this.endedAt = endedAt;
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
     }
 
     public void setDuties(ArrayList<String> duties) {

@@ -2,12 +2,25 @@ package com.kelpiegang.tacoresume.ApplicationLayer.Graphql;
 
 import com.google.gson.Gson;
 import com.kelpiegang.tacoresume.ApplicationLayer.Error.DbError;
-import com.kelpiegang.tacoresume.ApplicationLayer.GsonInput.WorkExperiencesInput;
+import com.kelpiegang.tacoresume.ApplicationLayer.GsonInput.UserInput;
+import com.kelpiegang.tacoresume.DbLayer.AwardRepository;
+import com.kelpiegang.tacoresume.DbLayer.ContactRepository;
+import com.kelpiegang.tacoresume.DbLayer.DevelopmentToolsSectionRepository;
+import com.kelpiegang.tacoresume.DbLayer.EducationRepository;
+import com.kelpiegang.tacoresume.DbLayer.ProfessionalSkillsSectionRepository;
+import com.kelpiegang.tacoresume.DbLayer.ReferenceRepository;
+import com.kelpiegang.tacoresume.DbLayer.SkillCategoryRepository;
+import com.kelpiegang.tacoresume.DbLayer.SkillRepository;
 import com.kelpiegang.tacoresume.DbLayer.UserRepository;
 import com.kelpiegang.tacoresume.DbLayer.WorkExperienceRepository;
+import com.kelpiegang.tacoresume.ModelLayer.DevelopmentToolsSection;
+import com.kelpiegang.tacoresume.ModelLayer.ProfessionalSkillsSection;
+import com.kelpiegang.tacoresume.ModelLayer.Skill;
+import com.kelpiegang.tacoresume.ModelLayer.SkillCategory;
 import com.kelpiegang.tacoresume.ModelLayer.User;
 import com.kelpiegang.tacoresume.ModelLayer.WorkExperience;
 import graphql.Scalars;
+import static graphql.Scalars.GraphQLInt;
 import static graphql.Scalars.GraphQLLong;
 import static graphql.Scalars.GraphQLString;
 import graphql.schema.DataFetcher;
@@ -20,21 +33,49 @@ import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import static graphql.schema.GraphQLObjectType.newObject;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import org.bson.types.ObjectId;
 
 public class TacoResumeSchemaMutations {
 
     private GraphQLObjectType updateUserMutation;
     private TacoResumeSchema tacoResumeSchema;
+
     private UserRepository userRepo;
     private WorkExperienceRepository workExpRepo;
+    private AwardRepository awardRepo;
+    private ContactRepository contactRepo;
+    private DevelopmentToolsSectionRepository developmentToolsSectionRepo;
+    private EducationRepository educationRepo;
+    private ProfessionalSkillsSectionRepository professionalSkillsSectionRepo;
+    private ReferenceRepository referenceRepo;
+    private SkillCategoryRepository skillCategoryRepo;
+    private SkillRepository skillRepo;
+
     private Gson gson;
 
-    public TacoResumeSchemaMutations(TacoResumeSchema tacoResumeSchema, UserRepository userRepo, WorkExperienceRepository workExpRepo, Gson gson) {
-        this.tacoResumeSchema = tacoResumeSchema;
+    public TacoResumeSchemaMutations(TacoResumeSchema tacoResumeSchema, UserRepository userRepo, WorkExperienceRepository workExpRepo,
+            AwardRepository awardRepo, ContactRepository contactRepo,
+            DevelopmentToolsSectionRepository developmentToolsSectionRepo, EducationRepository educationRepo,
+            ProfessionalSkillsSectionRepository professionalSkillsSectionRepo, ReferenceRepository referenceRepo,
+            SkillCategoryRepository skillCategoryRepo, SkillRepository skillRepo, Gson gson) {
+
         this.userRepo = userRepo;
         this.workExpRepo = workExpRepo;
+        this.awardRepo = awardRepo;
+        this.contactRepo = contactRepo;
+        this.developmentToolsSectionRepo = developmentToolsSectionRepo;
+        this.educationRepo = educationRepo;
+        this.professionalSkillsSectionRepo = professionalSkillsSectionRepo;
+        this.referenceRepo = referenceRepo;
+        this.skillCategoryRepo = skillCategoryRepo;
+        this.skillRepo = skillRepo;
+
+        this.tacoResumeSchema = tacoResumeSchema;
         this.gson = gson;
         createUpdateUserMutation();
     }
@@ -50,8 +91,7 @@ public class TacoResumeSchemaMutations {
                                 .name("UserInput")
                                 .type(createUserInputType())
                         )
-                        .dataFetcher(updateUsermutationDataFetcher())
-                )
+                        .dataFetcher(updateUsermutationDataFetcher()))
                 .build();
     }
 
@@ -73,21 +113,36 @@ public class TacoResumeSchemaMutations {
                 .name("about")
                 .type(Scalars.GraphQLString).build();
 
-        GraphQLInputObjectField phoneNumberField = newInputObjectField()
-                .name("phoneNumber")
-                .type(Scalars.GraphQLString).build();
-
         GraphQLInputObjectField jobTitleField = newInputObjectField()
                 .name("jobTitle")
-                .type(Scalars.GraphQLString).build();
-
-        GraphQLInputObjectField websiteField = newInputObjectField()
-                .name("website")
                 .type(Scalars.GraphQLString).build();
 
         GraphQLInputObjectField workExperiencesField = newInputObjectField()
                 .name("workExperiences")
                 .type(new GraphQLList(createWorkExperienceInputType())).build();
+
+        GraphQLInputObjectField awardsField = newInputObjectField()
+                .name("awards")
+                .type(new GraphQLList(createAwardInputType())).build();
+
+        GraphQLInputObjectField educationsField = newInputObjectField()
+                .name("educations")
+                .type(new GraphQLList(createEducationType())).build();
+
+        GraphQLInputObjectField referencesField = newInputObjectField()
+                .name("references")
+                .type(new GraphQLList(createReferenceType())).build();
+        GraphQLInputObjectField contactField = newInputObjectField()
+                .name("contact")
+                .type(createContactType()).build();
+
+        GraphQLInputObjectField professionalSkillsSectionField = newInputObjectField()
+                .name("professionalSkills")
+                .type(createProfessionalSkillsSeciotnType()).build();
+
+        GraphQLInputObjectField developmentToolsSectionField = newInputObjectField()
+                .name("developmentTools")
+                .type(createDevelopmentToolsSeciotnType()).build();
 
         GraphQLInputObjectType userInputType = GraphQLInputObjectType.newInputObject()
                 .name("UserInput")
@@ -95,16 +150,24 @@ public class TacoResumeSchemaMutations {
                 .field(nameField)
                 .field(emailField)
                 .field(aboutField)
-                .field(phoneNumberField)
                 .field(jobTitleField)
-                .field(websiteField)
                 .field(workExperiencesField)
+                .field(awardsField)
+                .field(educationsField)
+                .field(referencesField)
+                .field(contactField)
+                .field(professionalSkillsSectionField)
+                .field(developmentToolsSectionField)
                 .build();
 
         return userInputType;
     }
 
     private GraphQLInputObjectType createWorkExperienceInputType() {
+
+        GraphQLInputObjectField idField = newInputObjectField()
+                .name("_id")
+                .type(GraphQLString).build();
 
         GraphQLInputObjectField titleField = newInputObjectField()
                 .name("title")
@@ -114,12 +177,12 @@ public class TacoResumeSchemaMutations {
                 .name("company")
                 .type(GraphQLString).build();
 
-        GraphQLInputObjectField startedAtField = newInputObjectField()
-                .name("startedAt")
+        GraphQLInputObjectField startDateField = newInputObjectField()
+                .name("startDate")
                 .type(GraphQLLong).build();
 
-        GraphQLInputObjectField endedAtField = newInputObjectField()
-                .name("endedAt")
+        GraphQLInputObjectField endDateField = newInputObjectField()
+                .name("endDate")
                 .type(GraphQLLong).build();
 
         GraphQLInputObjectField dutiesField = newInputObjectField()
@@ -132,10 +195,11 @@ public class TacoResumeSchemaMutations {
 
         GraphQLInputObjectType workExperienceInputType = GraphQLInputObjectType.newInputObject()
                 .name("WorkExperienceInput")
+                .field(idField)
                 .field(titleField)
                 .field(companyField)
-                .field(startedAtField)
-                .field(endedAtField)
+                .field(startDateField)
+                .field(endDateField)
                 .field(dutiesField)
                 .field(toolsField)
                 .build();
@@ -144,37 +208,269 @@ public class TacoResumeSchemaMutations {
 
     }
 
+    private GraphQLInputObjectType createAwardInputType() {
+
+        GraphQLInputObjectField idField = newInputObjectField()
+                .name("_id")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField titleField = newInputObjectField()
+                .name("title")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField aboutField = newInputObjectField()
+                .name("about")
+                .type(GraphQLString).build();
+
+        return GraphQLInputObjectType.newInputObject()
+                .name("AwardInput")
+                .field(idField)
+                .field(titleField)
+                .field(aboutField)
+                .build();
+    }
+
+    private GraphQLInputObjectType createSkillInputType(String name) {
+
+        GraphQLInputObjectField idField = newInputObjectField()
+                .name("_id")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField titleField = newInputObjectField()
+                .name("title")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField percentageField = newInputObjectField()
+                .name("percentage")
+                .type(GraphQLInt).build();
+
+        return GraphQLInputObjectType.newInputObject()
+                .name("SkillInput" + name)
+                .field(idField)
+                .field(titleField)
+                .field(percentageField)
+                .build();
+    }
+
+    private GraphQLInputObjectType createSkillCategoryInputType(String name) {
+
+        GraphQLInputObjectField idField = newInputObjectField()
+                .name("_id")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField titleField = newInputObjectField()
+                .name("title")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField skillsField = newInputObjectField()
+                .name("skills")
+                .type(new GraphQLList(createSkillInputType(name))).build();
+
+        return GraphQLInputObjectType.newInputObject()
+                .name("SkillCategoryInput" + name)
+                .field(idField)
+                .field(titleField)
+                .field(skillsField)
+                .build();
+    }
+
+    private GraphQLInputObjectType createDevelopmentToolsSeciotnType() {
+
+        GraphQLInputObjectField idField = newInputObjectField()
+                .name("_id")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField skillCategoriesField = newInputObjectField()
+                .name("skillCategories")
+                .type(new GraphQLList(createSkillCategoryInputType("DevSection")))
+                .build();
+
+        return GraphQLInputObjectType.newInputObject()
+                .name("DevelopmentToolsSectionInput")
+                .field(idField)
+                .field(skillCategoriesField)
+                .build();
+    }
+
+    private GraphQLInputObjectType createProfessionalSkillsSeciotnType() {
+
+        GraphQLInputObjectField idField = newInputObjectField()
+                .name("_id")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField skillCategoriesField = newInputObjectField()
+                .name("skillCategories")
+                .type(new GraphQLList(createSkillCategoryInputType("ProfSection")))
+                .build();
+
+        return GraphQLInputObjectType.newInputObject()
+                .name("ProfessionalSkillsSectionInput")
+                .field(idField)
+                .field(skillCategoriesField)
+                .build();
+    }
+
+    private GraphQLInputObjectType createContactType() {
+
+        GraphQLInputObjectField idField = newInputObjectField()
+                .name("_id")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField phoneNumberField = newInputObjectField()
+                .name("phoneNumber")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField emailField = newInputObjectField()
+                .name("email")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField websiteField = newInputObjectField()
+                .name("website")
+                .type(GraphQLString).build();
+
+        return GraphQLInputObjectType.newInputObject()
+                .name("ContactInput")
+                .field(idField)
+                .field(phoneNumberField)
+                .field(emailField)
+                .field(websiteField)
+                .build();
+    }
+
+    private GraphQLInputObjectType createReferenceType() {
+
+        GraphQLInputObjectField idField = newInputObjectField()
+                .name("_id")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField nameField = newInputObjectField()
+                .name("name")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField emailField = newInputObjectField()
+                .name("email")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField jobTitleField = newInputObjectField()
+                .name("jobTitle")
+                .type(GraphQLString).build();
+
+        return GraphQLInputObjectType.newInputObject()
+                .name("ReferenceInput")
+                .field(idField)
+                .field(nameField)
+                .field(emailField)
+                .field(jobTitleField)
+                .build();
+    }
+
+    private GraphQLInputObjectType createEducationType() {
+
+        GraphQLInputObjectField idField = newInputObjectField()
+                .name("_id")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField degreeField = newInputObjectField()
+                .name("degree")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField universityField = newInputObjectField()
+                .name("university")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField startDateField = newInputObjectField()
+                .name("startDate")
+                .type(GraphQLLong).build();
+
+        GraphQLInputObjectField endDateField = newInputObjectField()
+                .name("endDate")
+                .type(GraphQLLong).build();
+
+        return GraphQLInputObjectType.newInputObject()
+                .name("EducationInput")
+                .field(idField)
+                .field(degreeField)
+                .field(universityField)
+                .field(startDateField)
+                .field(endDateField)
+                .build();
+    }
+
     private DataFetcher updateUsermutationDataFetcher() {
         return new DataFetcher() {
             @Override
             public User get(DataFetchingEnvironment environment) {
-                LinkedHashMap userInput = environment.getArgument("UserInput");
-                userInput.put("_id", new ObjectId(userInput.get("_id").toString()));
-                User user = gson.fromJson(gson.toJson(userInput), User.class);
+                //TODO id string to object id by gson and right implementation for db queries
+                LinkedHashMap userInputMap = environment.getArgument("UserInput");
+                String userInputJsonString = gson.toJson(userInputMap);
+                UserInput userInput = gson.fromJson(userInputJsonString, UserInput.class);
+                User user = gson.fromJson(userInputJsonString, User.class);
 
-                User updatedUser;
                 try {
+                    User updatedUser = userRepo.update(user);
+                    if (userInput.getWorkExperiences() != null) {
+                        workExpRepo.updateWorkExperiencesByUser(userInput.getWorkExperiences(), user);
+                    }
+                    if (userInput.getEducations() != null) {
+                        educationRepo.updateAwardsByUser(userInput.getEducations(), user);
+                    }
+                    if (userInput.getAwards() != null) {
+                        awardRepo.updateAwardsByUser(userInput.getAwards(), user);
+                    }
+                    if (userInput.getReferences() != null) {
+                        referenceRepo.updateReferenceByUser(userInput.getReferences(), user);
+                    }
+                    if (userInput.getContact() != null) {
+                        contactRepo.updateContactByUser(userInput.getContact(), user);
+                    }
+                    if (userInput.getProfessionalSkills() != null) {
+                        ArrayList<SkillCategory> skillCategories = userInput.getProfessionalSkills().getSkillCategories();
+                        ProfessionalSkillsSection professionalSkillsSection = professionalSkillsSectionRepo.updateByUser(userInput.getProfessionalSkills(), user);
 
-                    if (userInput.get("workExperiences") != null) {
-                        WorkExperiencesInput workExperiencesInput = gson.fromJson(gson.toJson(userInput), WorkExperiencesInput.class);
-                        for (WorkExperience workExperience : workExperiencesInput.getWorkExperiences()) {
-                            workExperience.setUser(user);
+                        List<SkillCategory> removedSkillCategorys = skillCategoryRepo.getAllByProfessionalSkillsSection(professionalSkillsSection);
+                        for (SkillCategory removedSkillCategory : removedSkillCategorys) {
+                            skillRepo.removeAllBySkillCategory(removedSkillCategory);
                         }
-                        if (workExperiencesInput.getWorkExperiences().isEmpty()) {
-                            workExpRepo.removeAllByUser(user);
-                        } else {
-                            workExpRepo.update(workExperiencesInput.getWorkExperiences());
+
+                        skillCategoryRepo.removeAllByProfessionalSkillsSection(professionalSkillsSection);
+
+                        for (SkillCategory skillCategory : skillCategories) {
+
+                            skillCategory.setProfessionalSkillsSection(professionalSkillsSection);
+                            SkillCategory dbSkillCategory = skillCategoryRepo.add(skillCategory);
+                            for (Skill skill : dbSkillCategory.getSkills()) {
+                                skill.setSkillCategory(skillCategory);
+                            }
+
+                            skillRepo.addAll(dbSkillCategory.getSkills());
                         }
 
                     }
+                    if (userInput.getDevelopmentTools() != null) {
+                        ArrayList<SkillCategory> skillCategories = userInput.getDevelopmentTools().getSkillCategories();
+                        DevelopmentToolsSection developmentToolsSection = developmentToolsSectionRepo.updateByUser(userInput.getDevelopmentTools(), user);
 
-                    updatedUser = userRepo.update(user);
+                        List<SkillCategory> removedSkillCategorys = skillCategoryRepo.getAllByDevelopmentToolsSection(developmentToolsSection);
+                        for (SkillCategory removedSkillCategory : removedSkillCategorys) {
+                            skillRepo.removeAllBySkillCategory(removedSkillCategory);
+                        }
+                        skillCategoryRepo.removeAllByDevelopmentToolsSection(developmentToolsSection);
+
+                        for (SkillCategory skillCategory : skillCategories) {
+                            skillCategory.setDevelopmentToolsSection(developmentToolsSection);
+                            SkillCategory dbSkillCategory = skillCategoryRepo.add(skillCategory);
+                            for (Skill skill : dbSkillCategory.getSkills()) {
+                                skill.setSkillCategory(skillCategory);
+                            }
+                            skillRepo.addAll(dbSkillCategory.getSkills());
+                        }
+                    }
+
                     return updatedUser;
                 } catch (DbError ex) {
                     System.out.println(ex.getMessage());
                     return null;
                 }
-
             }
         };
     }

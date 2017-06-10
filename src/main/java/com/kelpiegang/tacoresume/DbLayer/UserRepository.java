@@ -24,27 +24,21 @@ public class UserRepository {
 
     public User update(User user) throws DbError {
         try {
-            User Dbuser = this.getById(user.getObjectId());
+            User dbUser = this.getById(user.getObjectId());
             if (user.getName() != null) {
-                Dbuser.setName(user.getName());
+                dbUser.setName(user.getName());
             }
             if (user.getEmail() != null) {
-                Dbuser.setEmail(user.getEmail());
+                dbUser.setEmail(user.getEmail());
             }
             if (user.getAbout() != null) {
-                Dbuser.setAbout(user.getAbout());
+                dbUser.setAbout(user.getAbout());
             }
             if (user.getJobTitle() != null) {
-                Dbuser.setJobTitle(user.getJobTitle());
+                dbUser.setJobTitle(user.getJobTitle());
             }
-            if (user.getPhoneNumber() != null) {
-                Dbuser.setPhoneNumber(user.getPhoneNumber());
-            }
-            if (user.getWebsite() != null) {
-                Dbuser.setWebsite(user.getWebsite());
-            }
-            this.datastore.save(Dbuser);
-            return Dbuser;
+            this.datastore.save(dbUser);
+            return dbUser;
         } catch (Exception e) {
             throw new DbError(e.getMessage());
         }
