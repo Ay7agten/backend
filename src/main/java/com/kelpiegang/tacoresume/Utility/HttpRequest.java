@@ -30,7 +30,7 @@ public class HttpRequest {
                 new InputStreamReader(con.getInputStream()));
         String inputLine;
         StringBuffer response = new StringBuffer();
-        System.out.println(con.getInstanceFollowRedirects());
+       
 
         while ((inputLine = in.readLine()) != null) {
             response.append(inputLine);
@@ -59,7 +59,7 @@ public class HttpRequest {
                 new InputStreamReader(con.getInputStream()));
         String inputLine;
         StringBuffer response = new StringBuffer();
-        System.out.println(con.getInstanceFollowRedirects());
+       
 
         while ((inputLine = in.readLine()) != null) {
             response.append(inputLine);

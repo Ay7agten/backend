@@ -1,6 +1,7 @@
 package com.kelpiegang.tacoresume.DbLayer;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 
@@ -13,7 +14,8 @@ public class MongoConfig {
     private MongoConfig() {
         try {
             this.morphia = new Morphia();
-            this.datastore = morphia.createDatastore(new MongoClient(), "tacoresume");
+            String dbURI = System.getenv("MONGODB_URI");
+            this.datastore = morphia.createDatastore(new MongoClient(new MongoClientURI(dbURI)), "tacoresume");
             this.datastore.ensureIndexes();
         } catch (Exception e) {
             System.out.println(e.getMessage());

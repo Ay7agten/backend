@@ -3,6 +3,7 @@ package com.kelpiegang.tacoresume;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.kelpiegang.tacoresume.ApplicationLayer.Authentication.JwtAuthentication;
 import com.kelpiegang.tacoresume.ApplicationLayer.Error.AuthenticationError;
 import com.kelpiegang.tacoresume.ApplicationLayer.Error.AuthorizationError;
@@ -29,15 +30,17 @@ import static spark.Spark.before;
 import static spark.Spark.get;
 import static spark.Spark.halt;
 import static spark.Spark.options;
+import static spark.Spark.port;
 import static spark.Spark.post;
 
 public class Main {
 
     public static void main(String[] args) {
 
+        port(getHerokuAssignedPort());
         enableCORS("*", "*", "*");
 
-        String backendServerUrl = "http://localhost:4567";
+        String backendServerUrl = "https://tacoresume.herokuapp.com";
         String fronendServerUrl = "http://127.0.0.1:1111";
 
         HttpRequest httpRequest = new HttpRequest();
@@ -69,7 +72,24 @@ public class Main {
         GraphQL graphql = new GraphQL(tacoResumeSchema.getSchema());
 
         get("/api/hello-world", (request, response) -> {
-            return "Hello world!";
+            return "Hello Kemo!";
+        });
+
+        post("/api/user", (request, response) -> {
+            HashMap<String, Object> body = new ObjectMapper().readValue(request.body(), HashMap.class);
+            try {
+                User user = regUser.registerNewFacebookUser((String) body.get("facebookId"));
+                response.type("application/json");
+                JsonElement userJson = gson.toJsonTree(user);
+                userJson.getAsJsonObject().remove("_id");
+                userJson.getAsJsonObject().addProperty("_id", user.get_id());
+
+                return gson.toJson(userJson);
+            } catch (DbError | Exception ex) {
+                response.status(400);
+                response.type("application/json");
+                return gson.toJson(ex);
+            }
         });
 
         post("/graphql", (request, response) -> {
@@ -88,7 +108,7 @@ public class Main {
                 }
                 result.put("data", executionResult.getData());
                 response.type("application/json");
-                return gson.toJson(result);
+                return new ObjectMapper().writeValueAsString(result);
             } catch (IOException ex) {
                 response.type("application/json");
                 return gson.toJson(new ValidationError(ex.getMessage()));
@@ -165,32 +185,34 @@ public class Main {
         });
 
 //        before("/graphql", (request, response) -> {
-//            try {
-//                String jwtToken = request.headers("Authorization");
-//                String userId = auth.verifyJwtToken(jwtToken);
+//            if (!request.requestMethod().equals("OPTIONS")) {
+//                try {
+//                    String jwtToken = request.headers("Authorization");
+//                    String userId = auth.verifyJwtToken(jwtToken);
 //
-//                HashMap<String, Object> body = new ObjectMapper().readValue(request.body(), HashMap.class);
-//                String query = (String) body.get("query");
-//                Map<String, Object> variables = (Map<String, Object>) body.get("variables");
+//                    HashMap<String, Object> body = new ObjectMapper().readValue(request.body(), HashMap.class);
+//                    String query = (String) body.get("query");
+//                    Map<String, Object> variables = (Map<String, Object>) body.get("variables");
 //
-//                if (!variables.isEmpty()) {
-//                    Map<String, Object> user = (Map<String, Object>) variables.get("user");
-//                    String _id = (String) user.get("_id");
-//                    if (!userId.equals(_id)) {
-//                        AuthorizationError e = new AuthorizationError("This user unauthorized to this action");
-//                        halt(401, gson.toJson(e));
+//                    if (!variables.isEmpty()) {
+//                        Map<String, Object> user = (Map<String, Object>) variables.get("user");
+//                        String _id = (String) user.get("_id");
+//                        if (!userId.equals(_id)) {
+//                            AuthorizationError e = new AuthorizationError("This user unauthorized to this action");
+//                            halt(401, gson.toJson(e));
+//                        }
+//                    } else {
+//                        int index1 = query.indexOf("\"", 1) + 1;
+//                        String _id = query.substring(index1, index1 + 24);
+//                        if (!userId.equals(_id)) {
+//                            AuthorizationError e = new AuthorizationError("This user unauthorized to this action");
+//                            halt(401, gson.toJson(e));
+//                        }
 //                    }
-//                } else {
-//                    int index1 = query.indexOf("\"", 1) + 1;
-//                    String _id = query.substring(index1, index1 + 24);
-//                    if (!userId.equals(_id)) {
-//                        AuthorizationError e = new AuthorizationError("This user unauthorized to this action");
-//                        halt(401, gson.toJson(e));
-//                    }
+//
+//                } catch (AuthenticationError e) {
+//                    halt(403, gson.toJson(e));
 //                }
-//
-//            } catch (AuthenticationError e) {
-//                halt(403, gson.toJson(e));
 //            }
 //        });
     }
@@ -222,5 +244,13 @@ public class Main {
             // Note: this may or may not be necessary in your particular application
             response.type("application/json");
         });
+    }
+
+    static int getHerokuAssignedPort() {
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        if (processBuilder.environment().get("PORT") != null) {
+            return Integer.parseInt(processBuilder.environment().get("PORT"));
+        }
+        return 4567;
     }
 }

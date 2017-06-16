@@ -11,7 +11,7 @@ public class User {
     private ObjectId _id;
     private String facebookId;
     private String googleId;
-    private String linkedInId;
+    private String linkedInId = null;
     private String name;
     private String email;
     private String about;
@@ -47,6 +47,7 @@ public class User {
     }
 
     public String getLinkedInId() {
+        System.out.println(linkedInId);
         return linkedInId;
     }
 
@@ -80,5 +81,9 @@ public class User {
 
     public void setJobTitle(String jobTitle) {
         this.jobTitle = jobTitle;
+    }
+
+    public void setId(ObjectId _id) {
+        this._id = _id;
     }
 }

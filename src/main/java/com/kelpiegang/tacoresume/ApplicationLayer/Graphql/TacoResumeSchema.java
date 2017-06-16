@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.kelpiegang.tacoresume.ApplicationLayer.Error.DbError;
 import com.kelpiegang.tacoresume.DbLayer.*;
 import com.kelpiegang.tacoresume.ModelLayer.*;
+import graphql.GraphQLException;
 import static graphql.Scalars.GraphQLLong;
 import static graphql.Scalars.GraphQLInt;
 import static graphql.Scalars.GraphQLString;
@@ -449,9 +450,8 @@ public class TacoResumeSchema {
                 try {
                     return userRepo.getById(new ObjectId(id));
                 } catch (DbError ex) {
-                    System.out.println("Data base error");
+                    throw new GraphQLException(ex.getMessage());
                 }
-                return null;
             }
         };
 
@@ -466,8 +466,7 @@ public class TacoResumeSchema {
                 try {
                     return workExpRepo.getAllByUser(user);
                 } catch (DbError ex) {
-                    System.out.println("Data base error");
-                    return null;
+                    throw new GraphQLException(ex.getMessage());
                 }
             }
         };
@@ -482,8 +481,7 @@ public class TacoResumeSchema {
                 try {
                     return skillRepo.getAllBySkillCategory(skillCategory);
                 } catch (DbError ex) {
-                    System.out.println("Data base error");
-                    return null;
+                    throw new GraphQLException(ex.getMessage());
                 }
             }
         };
@@ -498,8 +496,7 @@ public class TacoResumeSchema {
                 try {
                     return educationRepo.getAllByUser(user);
                 } catch (DbError ex) {
-                    System.out.println("Data base error");
-                    return null;
+                    throw new GraphQLException(ex.getMessage());
                 }
             }
         };
@@ -514,8 +511,7 @@ public class TacoResumeSchema {
                 try {
                     return referenceRepo.getAllByUser(user);
                 } catch (DbError ex) {
-                    System.out.println("Data base error");
-                    return null;
+                    throw new GraphQLException(ex.getMessage());
                 }
             }
         };
@@ -530,8 +526,7 @@ public class TacoResumeSchema {
                 try {
                     return awardRepo.getAllByUser(user);
                 } catch (DbError ex) {
-                    System.out.println("Data base error");
-                    return null;
+                    throw new GraphQLException(ex.getMessage());
                 }
             }
         };
@@ -546,8 +541,7 @@ public class TacoResumeSchema {
                 try {
                     return contactRepo.getByUser(user);
                 } catch (DbError ex) {
-                    System.out.println("Data base error");
-                    return null;
+                    throw new GraphQLException(ex.getMessage());
                 }
             }
         };
@@ -562,8 +556,7 @@ public class TacoResumeSchema {
                 try {
                     return skillCategoryRepo.getAllByDevelopmentToolsSection(developmentToolsSection);
                 } catch (DbError ex) {
-                    System.out.println("Data base error");
-                    return null;
+                    throw new GraphQLException(ex.getMessage());
                 }
             }
         };
@@ -578,8 +571,7 @@ public class TacoResumeSchema {
                 try {
                     return skillCategoryRepo.getAllByProfessionalSkillsSection(professionalSkillsSection);
                 } catch (DbError ex) {
-                    System.out.println("Data base error");
-                    return null;
+                    throw new GraphQLException(ex.getMessage());
                 }
 
             }
@@ -595,8 +587,7 @@ public class TacoResumeSchema {
                 try {
                     return professionalSkillsSectionRepo.getByUser(user);
                 } catch (DbError ex) {
-                    System.out.println("Data base error");
-                    return null;
+                    throw new GraphQLException(ex.getMessage());
                 }
             }
         };
@@ -611,8 +602,7 @@ public class TacoResumeSchema {
                 try {
                     return developmentToolsSectionRepo.getByUser(user);
                 } catch (DbError ex) {
-                    System.out.println("Data base error");
-                    return null;
+                    throw new GraphQLException(ex.getMessage());
                 }
             }
         };

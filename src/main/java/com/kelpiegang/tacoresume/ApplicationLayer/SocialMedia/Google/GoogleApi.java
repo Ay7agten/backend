@@ -5,10 +5,10 @@ import com.kelpiegang.tacoresume.Utility.HttpRequest;
 
 public class GoogleApi {
 
-    private String appId = "";
+    private String appId = System.getenv("GOOGLE_APP_ID");
     private String domain;
     private String scope = "email";
-    private String appSecret = "";
+    private String appSecret = System.getenv("GOOGLE_APP_SECRET");
     private String responseType = "code";
     private String approvalPrompt = "force";
     private String grantType = "authorization_code";

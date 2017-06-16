@@ -46,7 +46,8 @@ public class UserRepository {
 
     public User add(User user) throws DbError {
         try {
-            this.datastore.save(user);
+            ObjectId _id = (ObjectId) this.datastore.save(user).getId();
+            user.setId(_id);
             return user;
         } catch (Exception e) {
             throw new DbError(e.getMessage());

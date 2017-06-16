@@ -19,6 +19,7 @@ import com.kelpiegang.tacoresume.ModelLayer.Skill;
 import com.kelpiegang.tacoresume.ModelLayer.SkillCategory;
 import com.kelpiegang.tacoresume.ModelLayer.User;
 import com.kelpiegang.tacoresume.ModelLayer.WorkExperience;
+import graphql.GraphQLException;
 import graphql.Scalars;
 import static graphql.Scalars.GraphQLInt;
 import static graphql.Scalars.GraphQLLong;
@@ -468,8 +469,7 @@ public class TacoResumeSchemaMutations {
 
                     return updatedUser;
                 } catch (DbError ex) {
-                    System.out.println(ex.getMessage());
-                    return null;
+                    throw new GraphQLException(ex.getMessage());
                 }
             }
         };

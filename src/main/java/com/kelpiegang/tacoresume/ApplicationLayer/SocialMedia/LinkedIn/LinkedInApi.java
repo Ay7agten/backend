@@ -5,10 +5,10 @@ import com.kelpiegang.tacoresume.Utility.HttpRequest;
 
 public class LinkedInApi {
 
-    private String appId = "";
+    private String appId = System.getenv("LINKEDIN_APP_ID");
     private String domain;
     private String scope = "r_basicprofile";
-    private String appSecret = "";
+    private String appSecret = System.getenv("LINKEDIN_APP_SECRET");
     private String responseType = "code";
     private String state = "DCEeFWa45A55sdfKef424";
     private String grantType = "authorization_code";

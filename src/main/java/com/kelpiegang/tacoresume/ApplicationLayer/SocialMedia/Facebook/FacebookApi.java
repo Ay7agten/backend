@@ -9,10 +9,10 @@ import com.restfb.Version;
 
 public class FacebookApi {
 
-    private String appId = "";
+    private String appId = System.getenv("FACEBOOK_APP_ID");
     private String domain;
     private String scope = "email";
-    private String appSecret = "";
+    private String appSecret = System.getenv("FACEBOOK_APP_SECRET");;
     private String responseType = "code";
 
     private HttpRequest httpRequest;
