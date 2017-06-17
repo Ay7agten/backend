@@ -446,9 +446,16 @@ public class TacoResumeSchema {
         return new DataFetcher<User>() {
             @Override
             public User get(DataFetchingEnvironment environment) {
+
                 String id = environment.getArgument("_id");
+                String jwtId = environment.getContext().toString();
+
                 try {
-                    return userRepo.getById(new ObjectId(id));
+                    if (id == null) {
+                        return userRepo.getById(new ObjectId(jwtId));
+                    } else {
+                        return userRepo.getById(new ObjectId(id));
+                    }
                 } catch (DbError ex) {
                     throw new GraphQLException(ex.getMessage());
                 }
