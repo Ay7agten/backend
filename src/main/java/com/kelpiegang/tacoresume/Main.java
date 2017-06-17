@@ -36,12 +36,12 @@ import static spark.Spark.post;
 public class Main {
 
     public static void main(String[] args) {
-
+           
         port(getHerokuAssignedPort());
         enableCORS("*", "*", "*");
 
         String backendServerUrl = "https://tacoresume.herokuapp.com";
-        String fronendServerUrl = "http://127.0.0.1:1111";
+        String fronendServerUrl = "http://localhost:3000";
 
         HttpRequest httpRequest = new HttpRequest();
         Gson gsonWithAdaptor = new GsonBuilder().setPrettyPrinting().registerTypeAdapterFactory(new LinkedHashMapAdapterFactory()).create();
@@ -72,23 +72,20 @@ public class Main {
         GraphQL graphql = new GraphQL(tacoResumeSchema.getSchema());
 
         get("/api/hello-world", (request, response) -> {
-            return "Hello Kemo!";
+            return "Hello World!";
         });
 
-        post("/api/user", (request, response) -> {
-            HashMap<String, Object> body = new ObjectMapper().readValue(request.body(), HashMap.class);
-            try {
-                User user = regUser.registerNewFacebookUser((String) body.get("facebookId"));
-                response.type("application/json");
-                JsonElement userJson = gson.toJsonTree(user);
-                userJson.getAsJsonObject().remove("_id");
-                userJson.getAsJsonObject().addProperty("_id", user.get_id());
+        before("/graphql", (request, response) -> {
+            if (!request.requestMethod().equals("OPTIONS")) {
+                try {
 
-                return gson.toJson(userJson);
-            } catch (DbError | Exception ex) {
-                response.status(400);
-                response.type("application/json");
-                return gson.toJson(ex);
+                    String jwtToken = request.headers("Authorization");
+                    String userId = auth.verifyJwtToken(jwtToken);
+                    request.attribute("userId", userId);
+
+                } catch (AuthenticationError e) {
+                    halt(403, gson.toJson(e));
+                }
             }
         });
 
@@ -101,7 +98,8 @@ public class Main {
                 if (variables == null) {
                     variables = new HashMap<String, Object>();
                 }
-                ExecutionResult executionResult = graphql.execute(query, (Object) null, variables);
+
+                ExecutionResult executionResult = graphql.execute(query, (Object) request.attribute("userId"), variables);
                 Map<String, Object> result = new LinkedHashMap<>();
                 if (executionResult.getErrors().size() > 0) {
                     result.put("errors", executionResult.getErrors());
@@ -183,38 +181,6 @@ public class Main {
                 return gson.toJson(ex);
             }
         });
-
-//        before("/graphql", (request, response) -> {
-//            if (!request.requestMethod().equals("OPTIONS")) {
-//                try {
-//                    String jwtToken = request.headers("Authorization");
-//                    String userId = auth.verifyJwtToken(jwtToken);
-//
-//                    HashMap<String, Object> body = new ObjectMapper().readValue(request.body(), HashMap.class);
-//                    String query = (String) body.get("query");
-//                    Map<String, Object> variables = (Map<String, Object>) body.get("variables");
-//
-//                    if (!variables.isEmpty()) {
-//                        Map<String, Object> user = (Map<String, Object>) variables.get("user");
-//                        String _id = (String) user.get("_id");
-//                        if (!userId.equals(_id)) {
-//                            AuthorizationError e = new AuthorizationError("This user unauthorized to this action");
-//                            halt(401, gson.toJson(e));
-//                        }
-//                    } else {
-//                        int index1 = query.indexOf("\"", 1) + 1;
-//                        String _id = query.substring(index1, index1 + 24);
-//                        if (!userId.equals(_id)) {
-//                            AuthorizationError e = new AuthorizationError("This user unauthorized to this action");
-//                            halt(401, gson.toJson(e));
-//                        }
-//                    }
-//
-//                } catch (AuthenticationError e) {
-//                    halt(403, gson.toJson(e));
-//                }
-//            }
-//        });
     }
 
     private static void enableCORS(final String origin, final String methods, final String headers) {
