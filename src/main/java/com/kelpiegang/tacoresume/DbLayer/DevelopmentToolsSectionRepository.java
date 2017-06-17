@@ -59,7 +59,7 @@ public class DevelopmentToolsSectionRepository {
         try {
             DevelopmentToolsSection developmentToolsSection = datastore.get(DevelopmentToolsSection.class, id);
             if (developmentToolsSection == null) {
-                throw new DbError("Work Experience not found!");
+                throw new DbError("Development tools section not found!");
             }
             return developmentToolsSection;
         } catch (Exception e) {

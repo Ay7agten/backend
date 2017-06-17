@@ -36,7 +36,7 @@ import static spark.Spark.post;
 public class Main {
 
     public static void main(String[] args) {
-           
+
         port(getHerokuAssignedPort());
         enableCORS("*", "*", "*");
 
@@ -63,12 +63,13 @@ public class Main {
         ReferenceRepository referenceRepo = ReferenceRepository.getInstance(mongoConfig.getDatastore());
         SkillCategoryRepository skillCategoryRepo = SkillCategoryRepository.getInstance(mongoConfig.getDatastore());
         SkillRepository skillRepo = SkillRepository.getInstance(mongoConfig.getDatastore());
+        BasicInformationRepository basicInfoRepo = BasicInformationRepository.getInstance(mongoConfig.getDatastore());
 
         UserFactory userFactory = new UserFactory();
         RegisterUser regUser = new RegisterUser(userRepo, userFactory);
 
         TacoResumeSchema tacoResumeSchema = new TacoResumeSchema(userRepo, workExpRepo, awardRepo, contactRepo, developmentToolsSectionRepo,
-                educationRepo, professionalSkillsSectionRepo, referenceRepo, skillCategoryRepo, skillRepo, gsonWithAdaptor);
+                educationRepo, professionalSkillsSectionRepo, referenceRepo, skillCategoryRepo, skillRepo, basicInfoRepo, gsonWithAdaptor);
         GraphQL graphql = new GraphQL(tacoResumeSchema.getSchema());
 
         get("/api/hello-world", (request, response) -> {

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.kelpiegang.tacoresume.ApplicationLayer.Error.DbError;
 import com.kelpiegang.tacoresume.ApplicationLayer.GsonInput.UserInput;
 import com.kelpiegang.tacoresume.DbLayer.AwardRepository;
+import com.kelpiegang.tacoresume.DbLayer.BasicInformationRepository;
 import com.kelpiegang.tacoresume.DbLayer.ContactRepository;
 import com.kelpiegang.tacoresume.DbLayer.DevelopmentToolsSectionRepository;
 import com.kelpiegang.tacoresume.DbLayer.EducationRepository;
@@ -18,7 +19,6 @@ import com.kelpiegang.tacoresume.ModelLayer.ProfessionalSkillsSection;
 import com.kelpiegang.tacoresume.ModelLayer.Skill;
 import com.kelpiegang.tacoresume.ModelLayer.SkillCategory;
 import com.kelpiegang.tacoresume.ModelLayer.User;
-import com.kelpiegang.tacoresume.ModelLayer.WorkExperience;
 import graphql.GraphQLException;
 import graphql.Scalars;
 import static graphql.Scalars.GraphQLInt;
@@ -35,11 +35,8 @@ import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import static graphql.schema.GraphQLObjectType.newObject;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import org.bson.types.ObjectId;
 
 public class TacoResumeSchemaMutations {
 
@@ -56,6 +53,7 @@ public class TacoResumeSchemaMutations {
     private ReferenceRepository referenceRepo;
     private SkillCategoryRepository skillCategoryRepo;
     private SkillRepository skillRepo;
+    private BasicInformationRepository basicInfoRepo;
 
     private Gson gson;
 
@@ -63,7 +61,7 @@ public class TacoResumeSchemaMutations {
             AwardRepository awardRepo, ContactRepository contactRepo,
             DevelopmentToolsSectionRepository developmentToolsSectionRepo, EducationRepository educationRepo,
             ProfessionalSkillsSectionRepository professionalSkillsSectionRepo, ReferenceRepository referenceRepo,
-            SkillCategoryRepository skillCategoryRepo, SkillRepository skillRepo, Gson gson) {
+            SkillCategoryRepository skillCategoryRepo, SkillRepository skillRepo, BasicInformationRepository basicInfoRepo, Gson gson) {
 
         this.userRepo = userRepo;
         this.workExpRepo = workExpRepo;
@@ -75,6 +73,7 @@ public class TacoResumeSchemaMutations {
         this.referenceRepo = referenceRepo;
         this.skillCategoryRepo = skillCategoryRepo;
         this.skillRepo = skillRepo;
+        this.basicInfoRepo = basicInfoRepo;
 
         this.tacoResumeSchema = tacoResumeSchema;
         this.gson = gson;
@@ -133,6 +132,7 @@ public class TacoResumeSchemaMutations {
         GraphQLInputObjectField referencesField = newInputObjectField()
                 .name("references")
                 .type(new GraphQLList(createReferenceType())).build();
+
         GraphQLInputObjectField contactField = newInputObjectField()
                 .name("contact")
                 .type(createContactType()).build();
@@ -144,6 +144,10 @@ public class TacoResumeSchemaMutations {
         GraphQLInputObjectField developmentToolsSectionField = newInputObjectField()
                 .name("developmentTools")
                 .type(createDevelopmentToolsSeciotnType()).build();
+
+        GraphQLInputObjectField basicInformationField = newInputObjectField()
+                .name("basicInformation")
+                .type(createBasicInformationType()).build();
 
         GraphQLInputObjectType userInputType = GraphQLInputObjectType.newInputObject()
                 .name("UserInput")
@@ -159,6 +163,7 @@ public class TacoResumeSchemaMutations {
                 .field(contactField)
                 .field(professionalSkillsSectionField)
                 .field(developmentToolsSectionField)
+                .field(basicInformationField)
                 .build();
 
         return userInputType;
@@ -397,6 +402,38 @@ public class TacoResumeSchemaMutations {
                 .build();
     }
 
+    private GraphQLInputObjectType createBasicInformationType() {
+
+        GraphQLInputObjectField idField = newInputObjectField()
+                .name("_id")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField nameField = newInputObjectField()
+                .name("name")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField emailField = newInputObjectField()
+                .name("email")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField aboutField = newInputObjectField()
+                .name("about")
+                .type(GraphQLString).build();
+
+        GraphQLInputObjectField jobTitleField = newInputObjectField()
+                .name("jobTitle")
+                .type(GraphQLString).build();
+
+        return GraphQLInputObjectType.newInputObject()
+                .name("BasicInformationInput")
+                .field(idField)
+                .field(nameField)
+                .field(emailField)
+                .field(aboutField)
+                .field(jobTitleField)
+                .build();
+    }
+
     private DataFetcher updateUsermutationDataFetcher() {
         return new DataFetcher() {
             @Override
@@ -407,69 +444,78 @@ public class TacoResumeSchemaMutations {
                 UserInput userInput = gson.fromJson(userInputJsonString, UserInput.class);
                 User user = gson.fromJson(userInputJsonString, User.class);
 
-                try {
-                    User updatedUser = userRepo.update(user);
-                    if (userInput.getWorkExperiences() != null) {
-                        workExpRepo.updateWorkExperiencesByUser(userInput.getWorkExperiences(), user);
-                    }
-                    if (userInput.getEducations() != null) {
-                        educationRepo.updateAwardsByUser(userInput.getEducations(), user);
-                    }
-                    if (userInput.getAwards() != null) {
-                        awardRepo.updateAwardsByUser(userInput.getAwards(), user);
-                    }
-                    if (userInput.getReferences() != null) {
-                        referenceRepo.updateReferenceByUser(userInput.getReferences(), user);
-                    }
-                    if (userInput.getContact() != null) {
-                        contactRepo.updateContactByUser(userInput.getContact(), user);
-                    }
-                    if (userInput.getProfessionalSkills() != null) {
-                        ArrayList<SkillCategory> skillCategories = userInput.getProfessionalSkills().getSkillCategories();
-                        ProfessionalSkillsSection professionalSkillsSection = professionalSkillsSectionRepo.updateByUser(userInput.getProfessionalSkills(), user);
-
-                        List<SkillCategory> removedSkillCategorys = skillCategoryRepo.getAllByProfessionalSkillsSection(professionalSkillsSection);
-                        for (SkillCategory removedSkillCategory : removedSkillCategorys) {
-                            skillRepo.removeAllBySkillCategory(removedSkillCategory);
+                if (!environment.getContext().toString().equals(user.get_id())) {
+                    throw new GraphQLException("Not Authorized");
+                } else {
+                    try {
+                        User updatedUser = userRepo.update(user);
+                        if (userInput.getWorkExperiences() != null) {
+                            workExpRepo.updateWorkExperiencesByUser(userInput.getWorkExperiences(), user);
+                        }
+                        if (userInput.getEducations() != null) {
+                            educationRepo.updateAwardsByUser(userInput.getEducations(), user);
+                        }
+                        if (userInput.getAwards() != null) {
+                            awardRepo.updateAwardsByUser(userInput.getAwards(), user);
+                        }
+                        if (userInput.getReferences() != null) {
+                            referenceRepo.updateReferenceByUser(userInput.getReferences(), user);
+                        }
+                        if (userInput.getContact() != null) {
+                            contactRepo.updateContactByUser(userInput.getContact(), user);
                         }
 
-                        skillCategoryRepo.removeAllByProfessionalSkillsSection(professionalSkillsSection);
+                        if (userInput.getBasicInformation() != null) {
+                            basicInfoRepo.updateBasicInformationByUser(userInput.getBasicInformation(), user);
+                        }
 
-                        for (SkillCategory skillCategory : skillCategories) {
+                        if (userInput.getProfessionalSkills() != null) {
+                            ArrayList<SkillCategory> skillCategories = userInput.getProfessionalSkills().getSkillCategories();
+                            ProfessionalSkillsSection professionalSkillsSection = professionalSkillsSectionRepo.updateByUser(userInput.getProfessionalSkills(), user);
 
-                            skillCategory.setProfessionalSkillsSection(professionalSkillsSection);
-                            SkillCategory dbSkillCategory = skillCategoryRepo.add(skillCategory);
-                            for (Skill skill : dbSkillCategory.getSkills()) {
-                                skill.setSkillCategory(skillCategory);
+                            List<SkillCategory> removedSkillCategorys = skillCategoryRepo.getAllByProfessionalSkillsSection(professionalSkillsSection);
+                            for (SkillCategory removedSkillCategory : removedSkillCategorys) {
+                                skillRepo.removeAllBySkillCategory(removedSkillCategory);
                             }
 
-                            skillRepo.addAll(dbSkillCategory.getSkills());
-                        }
+                            skillCategoryRepo.removeAllByProfessionalSkillsSection(professionalSkillsSection);
 
-                    }
-                    if (userInput.getDevelopmentTools() != null) {
-                        ArrayList<SkillCategory> skillCategories = userInput.getDevelopmentTools().getSkillCategories();
-                        DevelopmentToolsSection developmentToolsSection = developmentToolsSectionRepo.updateByUser(userInput.getDevelopmentTools(), user);
+                            for (SkillCategory skillCategory : skillCategories) {
 
-                        List<SkillCategory> removedSkillCategorys = skillCategoryRepo.getAllByDevelopmentToolsSection(developmentToolsSection);
-                        for (SkillCategory removedSkillCategory : removedSkillCategorys) {
-                            skillRepo.removeAllBySkillCategory(removedSkillCategory);
-                        }
-                        skillCategoryRepo.removeAllByDevelopmentToolsSection(developmentToolsSection);
+                                skillCategory.setProfessionalSkillsSection(professionalSkillsSection);
+                                SkillCategory dbSkillCategory = skillCategoryRepo.add(skillCategory);
+                                for (Skill skill : dbSkillCategory.getSkills()) {
+                                    skill.setSkillCategory(skillCategory);
+                                }
 
-                        for (SkillCategory skillCategory : skillCategories) {
-                            skillCategory.setDevelopmentToolsSection(developmentToolsSection);
-                            SkillCategory dbSkillCategory = skillCategoryRepo.add(skillCategory);
-                            for (Skill skill : dbSkillCategory.getSkills()) {
-                                skill.setSkillCategory(skillCategory);
+                                skillRepo.addAll(dbSkillCategory.getSkills());
                             }
-                            skillRepo.addAll(dbSkillCategory.getSkills());
-                        }
-                    }
 
-                    return updatedUser;
-                } catch (DbError ex) {
-                    throw new GraphQLException(ex.getMessage());
+                        }
+                        if (userInput.getDevelopmentTools() != null) {
+                            ArrayList<SkillCategory> skillCategories = userInput.getDevelopmentTools().getSkillCategories();
+                            DevelopmentToolsSection developmentToolsSection = developmentToolsSectionRepo.updateByUser(userInput.getDevelopmentTools(), user);
+
+                            List<SkillCategory> removedSkillCategorys = skillCategoryRepo.getAllByDevelopmentToolsSection(developmentToolsSection);
+                            for (SkillCategory removedSkillCategory : removedSkillCategorys) {
+                                skillRepo.removeAllBySkillCategory(removedSkillCategory);
+                            }
+                            skillCategoryRepo.removeAllByDevelopmentToolsSection(developmentToolsSection);
+
+                            for (SkillCategory skillCategory : skillCategories) {
+                                skillCategory.setDevelopmentToolsSection(developmentToolsSection);
+                                SkillCategory dbSkillCategory = skillCategoryRepo.add(skillCategory);
+                                for (Skill skill : dbSkillCategory.getSkills()) {
+                                    skill.setSkillCategory(skillCategory);
+                                }
+                                skillRepo.addAll(dbSkillCategory.getSkills());
+                            }
+                        }
+
+                        return updatedUser;
+                    } catch (DbError ex) {
+                        throw new GraphQLException(ex.getMessage());
+                    }
                 }
             }
         };

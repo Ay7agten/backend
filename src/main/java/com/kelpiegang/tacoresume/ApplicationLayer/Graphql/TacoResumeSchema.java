@@ -30,6 +30,7 @@ public class TacoResumeSchema {
     private GraphQLObjectType referenceType;
     private GraphQLObjectType skillType;
     private GraphQLObjectType skillCategoryType;
+    private GraphQLObjectType BasicInformationType;
 
     private UserRepository userRepo;
     private WorkExperienceRepository workExpRepo;
@@ -41,13 +42,14 @@ public class TacoResumeSchema {
     private ReferenceRepository referenceRepo;
     private SkillCategoryRepository skillCategoryRepo;
     private SkillRepository skillRepo;
+    private BasicInformationRepository basicInfoRepo;
 
     private Gson gson;
 
     public TacoResumeSchema(UserRepository userRepo, WorkExperienceRepository workExpRepo, AwardRepository awardRepo, ContactRepository contactRepo,
             DevelopmentToolsSectionRepository developmentToolsSectionRepo, EducationRepository educationRepo,
             ProfessionalSkillsSectionRepository professionalSkillsSectionRepo, ReferenceRepository referenceRepo,
-            SkillCategoryRepository skillCategoryRepo, SkillRepository skillRepo, Gson gson) {
+            SkillCategoryRepository skillCategoryRepo, SkillRepository skillRepo, BasicInformationRepository basicInfoRepo, Gson gson) {
 
         this.userRepo = userRepo;
         this.workExpRepo = workExpRepo;
@@ -59,6 +61,7 @@ public class TacoResumeSchema {
         this.referenceRepo = referenceRepo;
         this.skillCategoryRepo = skillCategoryRepo;
         this.skillRepo = skillRepo;
+        this.basicInfoRepo = basicInfoRepo;
 
         this.gson = gson;
         createSchema();
@@ -76,6 +79,7 @@ public class TacoResumeSchema {
         createEducationType();
         createReferenceType();
         createWorkExperienceType();
+        createBasicInformation();
         createUserType();
 
         GraphQLFieldDefinition user
@@ -96,7 +100,8 @@ public class TacoResumeSchema {
                         .build();
 
         TacoResumeSchemaMutations tacoResumeSchemaMutations = new TacoResumeSchemaMutations(this, userRepo, workExpRepo, awardRepo, contactRepo,
-                developmentToolsSectionRepo, educationRepo, professionalSkillsSectionRepo, referenceRepo, skillCategoryRepo, skillRepo, gson);
+                developmentToolsSectionRepo, educationRepo, professionalSkillsSectionRepo, referenceRepo,
+                skillCategoryRepo, skillRepo, basicInfoRepo, gson);
 
         GraphQLObjectType updateUserMutation = tacoResumeSchemaMutations.getUpdateUserMutation();
 
@@ -179,6 +184,12 @@ public class TacoResumeSchema {
                 .dataFetcher(developmentToolsSectionFetcher())
                 .build();
 
+        GraphQLFieldDefinition basicInformationField = newFieldDefinition()
+                .name("basicInformation")
+                .type(this.BasicInformationType)
+                .dataFetcher(basicInformationDataFetcher())
+                .build();
+
         this.userType = newObject()
                 .name("User")
                 .field(idField)
@@ -196,6 +207,7 @@ public class TacoResumeSchema {
                 .field(contactField)
                 .field(professionalSkillsSectionField)
                 .field(developmentToolsSectionField)
+                .field(basicInformationField)
                 .build();
     }
 
@@ -441,6 +453,39 @@ public class TacoResumeSchema {
                 .build();
     }
 
+    private void createBasicInformation() {
+
+        GraphQLFieldDefinition idField = newFieldDefinition()
+                .name("_id")
+                .type(GraphQLString).build();
+
+        GraphQLFieldDefinition nameField = newFieldDefinition()
+                .name("name")
+                .type(GraphQLString).build();
+
+        GraphQLFieldDefinition emailField = newFieldDefinition()
+                .name("email")
+                .type(GraphQLString).build();
+
+        GraphQLFieldDefinition aboutField = newFieldDefinition()
+                .name("about")
+                .type(GraphQLString).build();
+
+        GraphQLFieldDefinition jobTitleField = newFieldDefinition()
+                .name("jobTitle")
+                .type(GraphQLString).build();
+
+        this.BasicInformationType = newObject()
+                .name("BasicInformation")
+                .field(idField)
+                .field(nameField)
+                .field(emailField)
+                .field(aboutField)
+                .field(jobTitleField)
+                .build();
+
+    }
+
     private DataFetcher userDataFetcher() {
 
         return new DataFetcher<User>() {
@@ -615,6 +660,21 @@ public class TacoResumeSchema {
         };
     }
 
+    private DataFetcher basicInformationDataFetcher() {
+
+        return new DataFetcher<BasicInformation>() {
+            @Override
+            public BasicInformation get(DataFetchingEnvironment environment) {
+                User user = (User) environment.getSource();
+                try {
+                    return basicInfoRepo.getByUser(user);
+                } catch (DbError ex) {
+                    throw new GraphQLException(ex.getMessage());
+                }
+            }
+        };
+    }
+
     public GraphQLObjectType getUserType() {
         return this.userType;
     }
@@ -653,6 +713,10 @@ public class TacoResumeSchema {
 
     public GraphQLObjectType getSkillCategoryType() {
         return skillCategoryType;
+    }
+
+    public GraphQLObjectType basicInformationType() {
+        return BasicInformationType;
     }
 
     public GraphQLSchema getSchema() {

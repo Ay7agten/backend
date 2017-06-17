@@ -73,7 +73,7 @@ public class EducationRepository {
         try {
             Education education = datastore.get(Education.class, id);
             if (education == null) {
-                throw new DbError("Work Experience not found!");
+                throw new DbError("Education not found!");
             }
             return education;
         } catch (Exception e) {
