@@ -21,7 +21,7 @@ public class UserInput {
     private Contact contact;
     private ProfessionalSkillsSection professionalSkills;
     private DevelopmentToolsSection developmentTools;
-
+    private BasicInformation basicInformation;
 
     public ArrayList<WorkExperience> getWorkExperiences() {
         return workExperiences;
@@ -141,6 +141,14 @@ public class UserInput {
 
     public void setDevelopmentTools(DevelopmentToolsSection developmentTools) {
         this.developmentTools = developmentTools;
+    }
+
+    public BasicInformation getBasicInformation() {
+        return basicInformation;
+    }
+
+    public void setBasicInformation(BasicInformation basicInformation) {
+        this.basicInformation = basicInformation;
     }
 
 }

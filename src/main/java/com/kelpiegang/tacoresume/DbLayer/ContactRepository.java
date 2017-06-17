@@ -58,7 +58,7 @@ public class ContactRepository {
         try {
             Contact contact = datastore.get(Contact.class, id);
             if (contact == null) {
-                throw new DbError("Work Experience not found!");
+                throw new DbError("Contact not found!");
             }
             return contact;
         } catch (Exception e) {

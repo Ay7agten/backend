@@ -59,7 +59,7 @@ public class ProfessionalSkillsSectionRepository {
         try {
             ProfessionalSkillsSection professionalSkills = datastore.get(ProfessionalSkillsSection.class, id);
             if (professionalSkills == null) {
-                throw new DbError("Work Experience not found!");
+                throw new DbError("Professional skills section not found!");
             }
             return professionalSkills;
         } catch (Exception e) {

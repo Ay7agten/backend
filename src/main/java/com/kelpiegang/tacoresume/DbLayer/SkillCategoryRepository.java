@@ -68,7 +68,7 @@ public class SkillCategoryRepository {
         try {
             SkillCategory skillCategory = datastore.get(SkillCategory.class, id);
             if (skillCategory == null) {
-                throw new DbError("Work Experience not found!");
+                throw new DbError("Skill category not found!");
             }
             return skillCategory;
         } catch (Exception e) {

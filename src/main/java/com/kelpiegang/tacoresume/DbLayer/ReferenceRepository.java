@@ -73,7 +73,7 @@ public class ReferenceRepository {
         try {
             Reference reference = datastore.get(Reference.class, id);
             if (reference == null) {
-                throw new DbError("Work Experience not found!");
+                throw new DbError("Reference not found!");
             }
             return reference;
         } catch (Exception e) {

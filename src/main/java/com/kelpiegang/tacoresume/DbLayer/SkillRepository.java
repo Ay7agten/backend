@@ -93,7 +93,7 @@ public class SkillRepository {
         try {
             Skill skill = datastore.get(Skill.class, id);
             if (skill == null) {
-                throw new DbError("Work Experience not found!");
+                throw new DbError("Skill not found!");
             }
             return skill;
         } catch (Exception e) {
